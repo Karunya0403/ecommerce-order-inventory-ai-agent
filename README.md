@@ -37,12 +37,6 @@ Gmail Low-Stock Alert
       ↓
 Log Order in Google Sheets
 
-![Workflow Architecture](workflow-architecture.png)
-
-![Inventory Output](inventory-output.png)
-
-![Google Sheets Order Output](google-sheets-output.png)
-
 How It Works
 1. Order Processing
 
