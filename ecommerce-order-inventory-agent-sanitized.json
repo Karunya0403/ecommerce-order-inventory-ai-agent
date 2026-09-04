@@ -1,0 +1,503 @@
+{
+  "name": "E-commerce Order & Inventory Automation Agent",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -944,
+        -496
+      ],
+      "id": "b462b598-3d4c-449c-80e2-77f3873c4dcc",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d92a41e1-8bf0-43ce-885a-eedf3d7ebcea",
+              "name": "=order_id",
+              "value": "=ORD-1001",
+              "type": "string"
+            },
+            {
+              "id": "d703bd55-335a-476a-ac1f-b22115116133",
+              "name": "=customer_name",
+              "value": "=karunya",
+              "type": "string"
+            },
+            {
+              "id": "5fc33aa0-0771-4918-8059-319d16a0798b",
+              "name": "=customer_email",
+              "value": "=customer@example.com",
+              "type": "string"
+            },
+            {
+              "id": "4d38f1ad-9e96-4f53-9769-caf72d753598",
+              "name": "=product_id",
+              "value": "=P001",
+              "type": "string"
+            },
+            {
+              "id": "5ef5a016-7605-464f-8b12-d8c9d7ba716c",
+              "name": "=quantity",
+              "value": "=8",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -784,
+        -464
+      ],
+      "id": "b800e324-1ad2-47a4-bb0f-671e3efc09ed",
+      "name": "Shopify Order Simulator"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "commerce Inventory & Orders",
+          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Product ID",
+              "lookupValue": "={{ $json.product_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -624,
+        -432
+      ],
+      "id": "e782e203-51c8-484d-a6f4-49faee471d98",
+      "name": "Get row(s) in sheet"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13c36177-e208-4b8a-8915-c33208ddafb8",
+              "name": "=new_stock",
+              "value": "={{ $json.Stock - $('Shopify Order Simulator').item.json.quantity }}",
+              "type": "string"
+            },
+            {
+              "id": "e9986ebc-d84a-48b7-a263-436b80768459",
+              "name": "=total",
+              "value": "={{ $json.Price * $('Shopify Order Simulator').item.json.quantity }}",
+              "type": "string"
+            },
+            {
+              "id": "dd207ca2-500b-44cc-bef2-a61e8f2cd42b",
+              "name": "=low_stock",
+              "value": "={{ ($json.Stock - $('Shopify Order Simulator').item.json.quantity) <= $json['Low Stock Threshold'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -448,
+        -400
+      ],
+      "id": "33e47248-3aad-4b43-b2ad-e42d8100cb28",
+      "name": "Calculate Order"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "commerce Inventory & Orders",
+          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Product ID": "={{ $('Get row(s) in sheet').item.json['Product ID'] }}",
+            "Product Name": "={{ $('Get row(s) in sheet').item.json['Product Name'] }}",
+            "Price": "={{ $('Get row(s) in sheet').item.json.Price }}",
+            "Stock": "={{ $('Calculate Order').item.json.new_stock }}",
+            "Low Stock Threshold": "={{ $('Get row(s) in sheet').item.json['Low Stock Threshold'] }}"
+          },
+          "matchingColumns": [
+            "Product ID"
+          ],
+          "schema": [
+            {
+              "id": "Product ID",
+              "displayName": "Product ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Product Name",
+              "displayName": "Product Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price",
+              "displayName": "Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Stock",
+              "displayName": "Stock",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Low Stock Threshold",
+              "displayName": "Low Stock Threshold",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -304,
+        -368
+      ],
+      "id": "243319e7-e065-40b1-a7b3-e73dd531c309",
+      "name": "Calculate Order1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "693b6fdb-93cf-408c-9d33-d699fb7b62a5",
+              "leftValue": "={{ $('Calculate Order').item.json.low_stock }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -144,
+        -320
+      ],
+      "id": "6820c3cf-5bb1-41f7-a257-2ca0afb61fd7",
+      "name": "Low Stock Check"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_ADMIN_EMAIL@example.com",
+        "subject": "=⚠️ Low Stock Alert: {{ $json['Product Name'] }}",
+        "message": "=Low Stock Alert\n\nProduct: {{ $json['Product Name'] }}\nProduct ID: {{ $json['Product ID'] }}\nCurrent Stock: {{ $json.Stock }}\nLow Stock Threshold: {{ $json['Low Stock Threshold'] }}\n\nA new order has reduced inventory below the configured threshold.\nPlease restock this product.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        112,
+        -336
+      ],
+      "id": "fbd638ca-dfb5-4d9d-9597-b23213d97aec",
+      "name": "Send a message"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list",
+          "cachedResultName": "commerce Inventory & Orders",
+          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1691174923,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "YOUR_GOOGLE_SHEET_URL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Order ID": "={{ $('Shopify Order Simulator').item.json.order_id }}",
+            "Order Date": "={{ $now }}",
+            "Customer Name": "={{ $('Shopify Order Simulator').item.json.customer_name }}",
+            "Product ID": "={{ $('Get row(s) in sheet').item.json['Product ID'] }}",
+            "Product Name": "={{ $('Get row(s) in sheet').item.json['Product Name'] }}",
+            "Quantity": "={{ $('Shopify Order Simulator').item.json.quantity }}",
+            "Unit Price": "={{ $('Get row(s) in sheet').item.json.Price }}",
+            "Total": "={{ $('Calculate Order').item.json.total }}",
+            "Status": "=Low Stock Alert"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Order ID",
+              "displayName": "Order ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order Date",
+              "displayName": "Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Product ID",
+              "displayName": "Product ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Product Name",
+              "displayName": "Product Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Quantity",
+              "displayName": "Quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Unit Price",
+              "displayName": "Unit Price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        304,
+        -336
+      ],
+      "id": "0febaae2-b1a0-49db-9151-3d2722345020",
+      "name": "Append row in sheet"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Shopify Order Simulator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify Order Simulator": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Calculate Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Order": {
+      "main": [
+        [
+          {
+            "node": "Calculate Order1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Order1": {
+      "main": [
+        [
+          {
+            "node": "Low Stock Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Low Stock Check": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}
