@@ -36,6 +36,7 @@ Low Stock Check
 Gmail Low-Stock Alert
       ↓
 Log Order in Google Sheets
+```
 
 How It Works
 1. Order Processing
